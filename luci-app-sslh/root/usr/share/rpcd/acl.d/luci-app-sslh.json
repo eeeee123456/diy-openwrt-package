@@ -1,0 +1,10 @@
+{
+    "luci-app-sslh": {
+		"description": "SSLH",
+		"read": {
+			"uci": [ "sslh" ]
+		},
+		"write": {
+			"uci": [ "sslh" ]
+	}
+}

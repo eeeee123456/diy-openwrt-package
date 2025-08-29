@@ -1,0 +1,23 @@
+#!/bin/sh
+
+uci -q batch <<EOF
+CREATE sslh global
+SET sslh.@global[0].enabled='0'
+SET sslh.@global[0].listen_host='0.0.0.0'
+SET sslh.@global[0].listen_port='12345'
+
+CREATE sslh protocol
+SET sslh.@protocol[-1].enabled='1'
+SET sslh.@protocol[-1].name='ssh'
+SET sslh.@protocol[-1].target_host='127.0.0.1'
+SET sslh.@protocol[-1].target_port='22'
+
+CREATE sslh protocol
+SET sslh.@protocol[-1].enabled='1'
+SET sslh.@protocol[-1].name='tls'
+SET sslh.@protocol[-1].target_host='127.0.0.1'
+SET sslh.@protocol[-1].target_port='443'
+EOF
+
+uci commit sslh
+exit 0

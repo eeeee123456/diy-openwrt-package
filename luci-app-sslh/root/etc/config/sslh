@@ -1,0 +1,16 @@
+config sslh 'global'
+	option enabled '0'
+	option listen_host '0.0.0.0'
+	option listen_port '12345'
+
+config protocol
+	option enabled '1'
+	option name 'ssh'
+	option target_host '127.0.0.1'
+	option target_port '22'
+
+config protocol
+	option enabled '1'
+	option name 'tls'
+	option target_host '127.0.0.1'
+	option target_port '443'

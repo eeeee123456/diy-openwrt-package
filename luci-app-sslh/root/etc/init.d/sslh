@@ -1,0 +1,66 @@
+#!/bin/sh /etc/rc.common
+
+USE_PROCD=1
+START=99
+STOP=10
+
+PROG=/usr/sbin/sslh
+CONFIG_FILE=/etc/config/sslh
+
+start_service() {
+    local enabled listen_host listen_port
+
+    config_load "$CONFIG_FILE"
+
+    config_get_bool enabled global enabled 0
+    config_get listen_host global listen_host '0.0.0.0'
+    config_get listen_port global listen_port '12345'
+
+    # 如果在 UCI 中未启用，则不启动服务
+    [ "$enabled" -eq 0 ] && return 1
+
+    # 明确为 procd 实例命名，以便 procd 能够管理它
+    procd_open_instance sslh
+    procd_set_param command "$PROG" -f
+
+    procd_append_param command "--syslog-facility=daemon"
+    # 添加全局参数
+    procd_append_param command -p "${listen_host}:${listen_port}"
+
+    # 内部函数，用于处理每一条协议规则
+    sslh_add_protocol() {
+        local section="$1"
+        local enabled name target_host target_port
+
+        config_get_bool enabled "$section" enabled 1
+        config_get name "$section" name
+        config_get target_host "$section" target_host
+        config_get target_port "$section" target_port
+
+        if [ "$enabled" -ne 0 ] && [ -n "$name" ] && [ -n "$target_host" ] && [ -n "$target_port" ]; then
+            # 关键修正：将错误的 ${port} 修正为 ${target_port}
+            procd_append_param command "--${name}=${target_host}:${target_port}"
+        fi
+    }
+    # 遍历所有 protocol 类型的配置段
+    config_foreach sslh_add_protocol protocol
+
+    # 设置服务失败后自动重启
+    procd_set_param respawn
+    # 将标准输出和错误重定向到系统日志
+    procd_set_param stdout 1
+    procd_set_param stderr 1
+    procd_close_instance
+}
+
+reload_service() {
+    stop
+    start
+}
+
+# 关键新增：根据教程，添加服务触发器
+service_triggers() {
+    # 监控 /etc/config/sslh 文件的变化，
+    # 当变化发生时（例如 "保存并应用"），自动调用 reload 动作
+    procd_add_reload_trigger "sslh"
+}

@@ -1,0 +1,28 @@
+{
+    "admin/services/sslh": {
+        "title": "SSLH",
+        "action": {
+            "type": "firstchild"
+        },
+        "depends": {
+            "acl": [ "luci-app-sslh" ],
+            "uci": { "sslh": true }
+        }
+    },
+    "admin/services/sslh/config": {
+        "title": "Config",
+        "order": 1,
+        "action": {
+            "type": "view",
+            "path": "luci-app-sslh/config"
+        }
+    },
+    "admin/services/sslh/log": {
+        "title": "Log",
+        "order": 2,
+        "action": {
+            "type": "view",
+            "path": "luci-app-sslh/log"
+        }
+    }
+}
